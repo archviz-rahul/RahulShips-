@@ -1,0 +1,27 @@
+[
+  {
+    "id": "mcp_notion_marketing",
+    "name": "Notion Marketing Workspace",
+    "type": "SSE",
+    "commandOrUrl": "https://notion-api.mcp.internal/v1/sse",
+    "allowedPermissions": [
+      "Read",
+      "Execute"
+    ],
+    "autoSync": true,
+    "status": "Connected",
+    "lastSynced": "2026-05-23T15:31:00Z",
+    "resources": [
+      {
+        "name": "query_notion_pages",
+        "description": "Search marketing brief documents, Brand Guidelines and Vibe-Coding design system assets.",
+        "enabled": true
+      },
+      {
+        "name": "get_brand_tone",
+        "description": "Retrieve narrative parameters, target demographics and hook tempo definitions.",
+        "enabled": true
+      }
+    ]
+  }
+]

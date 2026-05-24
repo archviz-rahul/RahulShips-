@@ -1,0 +1,6 @@
+/app/applet
+├── output.txt
+└── package-lock.json
+
+file: 2
+

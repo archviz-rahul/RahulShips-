@@ -1,0 +1,16 @@
+[
+  {
+    "timestamp": "2026-05-23T15:31:02Z",
+    "model": "MCP Client Protocol",
+    "task": "MCP Resource Discovery: Notion Marketing Workspace",
+    "status": "SUCCESS",
+    "details": "Successfully queried and discovered 2 exposed resources/tools: query_notion_pages, get_brand_tone"
+  },
+  {
+    "timestamp": "2026-05-23T15:31:00Z",
+    "model": "MCP Connection Handshake",
+    "task": "MCP Connection Test: Notion Marketing Workspace",
+    "status": "SUCCESS",
+    "details": "Successfully handshaked with type [SSE] at https://notion-api.mcp.internal/v1/sse"
+  }
+]

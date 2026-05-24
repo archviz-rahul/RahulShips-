@@ -1,0 +1,6 @@
+{
+  "name": "@RahulShips Content Co-pilot",
+  "description": "Daily Content Strategist and Scriptwriter for @RahulShips, spanning Archviz + AI, Trading + Systems, Vibe Coding, and Builder Journey.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
