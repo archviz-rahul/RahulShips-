@@ -120,6 +120,17 @@ export default function LinkVaultFilters({
       .slice(0, 5);
   }, [counts.domainCounts, domainSearch]);
 
+  const getDomainColor = (domainName: string) => {
+    const d = domainName.toLowerCase();
+    if (d.includes("youtube.com") || d.includes("youtu.be")) return "#FF0000";
+    if (d.includes("instagram.com")) return "#E1306C";
+    if (d.includes("reddit.com")) return "#FF4500";
+    if (d.includes("twitter.com") || d.includes("x.com")) return "#6B6B7B"; // Muted neutral
+    if (d.includes("linkedin.com")) return "#0A66C2";
+    if (d.includes("substack.com") || d.includes("beehiiv.com")) return "#F59E0B";
+    return "#06B6D4"; // Default cosmic cyan
+  };
+
   const linkTypesDef: { id: LinkType; label: string; icon: any; color: string }[] = [
     { id: "youtube-video", label: "YouTube Video", icon: Youtube, color: "text-red-500" },
     { id: "youtube-short", label: "YouTube Short", icon: Youtube, color: "text-red-500" },
@@ -353,19 +364,31 @@ export default function LinkVaultFilters({
           onChange={(e) => setDomainSearch(e.target.value)}
           className="w-full bg-[#0A0A0B] border border-[#1E1E24] text-xs text-white rounded-lg px-2.5 py-1.5 outline-none font-sans mb-2 focus:border-white/20"
         />
-        <div className="flex flex-col gap-1">
-          {topDomains.map(({ domain, count }) => (
-            <div
-              key={domain}
-              className="flex justify-between items-center text-xs text-[#6B6B7B] px-1.5 py-1 capitalize"
-            >
-              <span className="truncate flex items-center gap-1">
-                <Globe className="w-3.5 h-3.5 text-neutral-500" />
-                <span className="truncate">{domain}</span>
-              </span>
-              <span className="font-mono text-xs text-neutral-500 bg-white/5 px-1.5 rounded-full">{count}</span>
-            </div>
-          ))}
+        <div className="flex flex-col gap-3">
+          {(() => {
+            const maxVal = Math.max(...topDomains.map(d => d.count), 1);
+            return topDomains.map(({ domain, count }) => {
+              const percentage = (count / maxVal) * 100;
+              const barColor = getDomainColor(domain);
+              return (
+                <div key={domain} className="flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center text-xs text-[#F5F5F7] group">
+                    <span className="truncate flex items-center gap-1.5">
+                      <Globe className="w-3.5 h-3.5 text-[#6B6B7B] group-hover:text-white transition-colors" />
+                      <span className="truncate text-[#F5F5F7] hover:text-white transition-colors capitalize">{domain}</span>
+                    </span>
+                    <span className="font-mono text-xs text-[#6B6B7B] bg-white/5 px-2 py-0.5 rounded-md">{count}</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-[#1E1E24] rounded-full overflow-hidden">
+                    <div
+                      style={{ width: `${percentage}%`, backgroundColor: barColor }}
+                      className="h-full rounded-full transition-all duration-500 ease-out"
+                    />
+                  </div>
+                </div>
+              );
+            });
+          })()}
           {topDomains.length === 0 && (
             <div className="text-xs text-neutral-600 text-center py-2">No active domains found</div>
           )}
