@@ -65,6 +65,7 @@ import {
 
 import { AIStudioView } from "@/components/AIStudioView";
 import { CompetitorAnalysisView } from "@/components/CompetitorAnalysisView";
+import { ThumbnailView } from "@/components/ThumbnailView";
 
 // Standard types
 interface Topic {
@@ -5625,6 +5626,7 @@ export default function ContentCopilotPage() {
     { id: "daily-brief", label: "Daily Brief", icon: Home },
     { id: "ai-studio", label: "AI Studio", icon: Sparkles },
     { id: "hook-bank", label: "Hook Bank", icon: Radio },
+    { id: "thumbnail-generator", label: "Thumbnail Pilot", icon: ImageIcon },
     { id: "pictures", label: "Pictures", icon: ImageIcon },
     { id: "strategy", label: "Strategy", icon: Lightbulb },
   ];
@@ -7937,6 +7939,14 @@ export default function ContentCopilotPage() {
         {/* Custom Nav Subview Injection */}
         {activeView === "ai-studio" && <AIStudioView />}
         {activeView === "hook-bank" && <HookBank />}
+        {activeView === "thumbnail-generator" && (
+          <ThumbnailView 
+            activePillar={selectedPillar} 
+            isDarkMode={isDarkMode} 
+            showToast={showToast} 
+            activeConfig={activeConfig} 
+          />
+        )}
         {activeView === "competitor-analysis" && (
           <CompetitorAnalysisView 
             isDarkMode={isDarkMode} 

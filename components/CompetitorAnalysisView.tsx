@@ -419,24 +419,28 @@ export function CompetitorAnalysisView({
     <div className="space-y-10 animate-fade-in" id="competitor-analysis-view">
       
       {/* 1. VIEW HEADER */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 sm:p-7 rounded-2xl border border-white/5 bg-gradient-to-r from-white/[0.03] to-transparent backdrop-blur-md relative overflow-hidden gap-4 shadow-sm shadow-cyan-500/5">
+      <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 sm:p-7 rounded-2xl border relative overflow-hidden gap-4 transition-all duration-300 ${
+        isDarkMode 
+          ? "border-white/5 bg-gradient-to-r from-white/[0.03] to-transparent shadow-cyan-500/5" 
+          : "border-black/5 bg-gradient-to-r from-black/[0.01] to-transparent shadow-sm"
+      }`}>
         <div className="absolute top-0 right-0 w-36 h-36 rounded-full blur-3xl bg-cyan-500/5 pointer-events-none" />
         <div>
           <div className="flex items-center gap-2 mb-1.5 text-xs font-black uppercase tracking-widest text-[#00F0FF] font-mono">
             <TrendingUp className="w-4 h-4 text-[#00F0FF]" /> Deep Analytics Engine
           </div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+          <h2 className={`text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
             Competitor Intelligence & Performance Lab
           </h2>
-          <p className="text-xs text-white/40 mt-1 max-w-xl">
+          <p className={`text-xs mt-1 max-w-xl ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>
             Reorganize competitors dynamically. Compare underlying video pillars, extraction metrics, conversion triggers, and track real-time milestone events.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 border-t sm:border-t-0 sm:border-l border-white/5 pt-3 sm:pt-0 sm:pl-6 max-w-xs shrink-0 font-mono">
-          <div className="flex items-center gap-2 text-white/60 text-[10px] uppercase font-bold tracking-wider">
+          <div className={`flex items-center gap-2 text-[10px] uppercase font-bold tracking-wider ${isDarkMode ? "text-white/60" : "text-gray-600"}`}>
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" /> Live Crawl Hub: Synced
           </div>
-          <div className="text-[10px] text-white/30 text-xs">
+          <div className={`text-[10px] text-xs ${isDarkMode ? "text-white/30" : "text-gray-400"}`}>
             COMPETITORS ON TRACK: {competitors.filter(c => c.status === "Active").length}
           </div>
         </div>
@@ -460,10 +464,10 @@ export function CompetitorAnalysisView({
                 )}
               </div>
               <div>
-                <h3 className="text-xs font-black uppercase tracking-widest text-white flex items-center gap-1.5 font-mono">
+                <h3 className={`text-xs font-black uppercase tracking-widest flex items-center gap-1.5 font-mono ${isDarkMode ? "text-white" : "text-gray-900"}`}>
                   Real-time Alerts & Milestone Feed
                 </h3>
-                <p className={`text-[10px] mt-0.5 transition-colors duration-300 ${isDarkMode ? "text-white/40" : "text-black/45"}`}>
+                <p className={`text-[10px] mt-0.5 transition-colors duration-300 ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>
                   Organic platform crawls showing trending achievements and post triggers
                 </p>
               </div>
@@ -472,7 +476,11 @@ export function CompetitorAnalysisView({
             {notifications.some(n => !n.isRead) && (
               <button
                 onClick={markAllNotificationsAsRead}
-                className="text-[10px] font-mono text-white/40 hover:text-[#00F0FF] transition-colors border border-white/10 p-1.5 rounded-md hover:bg-white/5 bg-transparent cursor-pointer"
+                className={`text-[10px] font-mono transition-colors border p-1.5 rounded-md bg-transparent cursor-pointer ${
+                  isDarkMode 
+                    ? "text-white/40 hover:text-[#00F0FF] border-white/10 hover:bg-white/5" 
+                    : "text-gray-500 hover:text-gray-900 border-black/10 hover:bg-black/5"
+                }`}
               >
                 Mark Cleared
               </button>
@@ -483,7 +491,7 @@ export function CompetitorAnalysisView({
           <div className="space-y-3.5 max-h-[260px] overflow-y-auto custom-scrollbar pr-1.5">
             <AnimatePresence initial={false}>
               {notifications.length === 0 ? (
-                <div className="py-12 text-center text-xs text-white/30 italic">
+                <div className={`py-12 text-center text-xs italic ${isDarkMode ? "text-white/30" : "text-gray-400"}`}>
                   No alerts triggered yet. Click one of the simulation triggers on the right to test!
                 </div>
               ) : (
@@ -506,19 +514,19 @@ export function CompetitorAnalysisView({
                       <div className="flex items-center gap-2">
                         <span className={`text-[9px] font-mono font-black uppercase px-2 py-0.5 rounded ${
                           notif.type === "milestone"
-                            ? "bg-amber-400/10 text-amber-400 border border-amber-400/20"
-                            : "bg-cyan-400/10 text-cyan-400 border border-cyan-400/20"
+                            ? "bg-amber-400/10 text-amber-500 border border-amber-500/20"
+                            : "bg-cyan-400/10 text-cyan-600 border border-cyan-500/20"
                         }`}>
                           {notif.badgeText}
                         </span>
-                        <span className="font-semibold text-white/80">{notif.competitorName}</span>
-                        <span className="text-white/40 font-mono text-[10px]">@{notif.username}</span>
+                        <span className={`font-semibold ${isDarkMode ? "text-white/80" : "text-gray-900"}`}>{notif.competitorName}</span>
+                        <span className={`font-mono text-[10px] ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>@{notif.username}</span>
                       </div>
-                      <span className="text-[9px] font-mono text-white/30">{notif.timestamp}</span>
+                      <span className={`text-[9px] font-mono ${isDarkMode ? "text-white/30" : "text-gray-400"}`}>{notif.timestamp}</span>
                     </div>
 
-                    <p className={`leading-relaxed text-xs pl-0.5 ${isDarkMode ? "text-white/70" : "text-black/75"}`}>
-                      <span className="font-mono text-[10px] text-white/40 uppercase mr-1 inline-flex items-center gap-0.5">[{notif.platform}]</span>
+                    <p className={`leading-relaxed text-xs pl-0.5 ${isDarkMode ? "text-white/70" : "text-gray-800"}`}>
+                      <span className={`font-mono text-[10px] uppercase mr-1 inline-flex items-center gap-0.5 ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>[{notif.platform}]</span>
                       {notif.message}
                     </p>
                   </motion.div>
@@ -536,7 +544,7 @@ export function CompetitorAnalysisView({
             <h3 className="text-xs font-black uppercase tracking-widest text-[#00F0FF] flex items-center gap-1.5 font-mono">
               <Zap className="w-4 h-4 text-[#00F0FF]" /> Event Simulator Suite
             </h3>
-            <p className={`text-[10px] mt-0.5 transition-colors duration-300 ${isDarkMode ? "text-white/40" : "text-black/45"}`}>
+            <p className={`text-[10px] mt-0.5 transition-colors duration-300 ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>
               Test the custom real-time notification engine on demand. Alerts will slide dynamically into the dashboard active logs.
             </p>
           </div>
@@ -548,7 +556,7 @@ export function CompetitorAnalysisView({
             >
               <Video className="w-4.5 h-4.5 shrink-0" />
               <span>CRAWL COGNITIVE POST</span>
-              <span className="text-[8px] text-white/40 font-normal">Spawn fresh competitor concept</span>
+              <span className={`text-[8px] font-normal ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>Spawn fresh competitor concept</span>
             </button>
             <button
               onClick={handleTriggerMilestoneAlert}
@@ -556,12 +564,12 @@ export function CompetitorAnalysisView({
             >
               <Award className="w-4.5 h-4.5 shrink-0" />
               <span>SIMULATE BREAKTHROUGH</span>
-              <span className="text-[8px] text-white/40 font-normal">Force milestone spikes metrics</span>
+              <span className={`text-[8px] font-normal ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>Force milestone spikes metrics</span>
             </button>
           </div>
 
-          <div className="border-t border-white/5 pt-3 text-[10px] text-white/30 italic leading-normal flex items-start gap-1.5">
-            <Info className="w-3.5 h-3.5 shrink-0 text-white/30 mt-0.5" />
+          <div className={`pt-3 text-[10px] italic leading-normal flex items-start gap-1.5 border-t ${isDarkMode ? "border-white/5 text-white/30" : "border-black/5 text-gray-500"}`}>
+            <Info className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${isDarkMode ? "text-white/30" : "text-gray-400"}`} />
             <span>Organic backdrop timers are armed to automatically trigger simulated events in the background every 50 seconds during your research exploration.</span>
           </div>
         </div>
@@ -572,14 +580,14 @@ export function CompetitorAnalysisView({
       <div className={`p-6 sm:p-8 rounded-2xl border transition-all duration-300 ${isDarkMode ? "bg-[#0E0E0E] border-white/10" : "bg-white border-black/5 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"}`}>
         
         {/* Dynamic Groups filter & Dashboard Tabs */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-5 mb-7 gap-4">
+        <div className={`flex flex-col md:flex-row md:items-center justify-between border-b pb-5 mb-7 gap-4 ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
           <div>
-            <span className="text-[9px] font-mono tracking-widest uppercase text-white/40">ORGANIZATIONAL LAB</span>
-            <h3 className="text-sm font-black text-white uppercase tracking-tight">Competitor Segmentation</h3>
-            <p className="text-[11px] text-white/45 mt-0.5">Filter charts and overview matrices by custom tracked lists.</p>
+            <span className={`text-[9px] font-mono tracking-widest uppercase ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>ORGANIZATIONAL LAB</span>
+            <h3 className={`text-sm font-black uppercase tracking-tight ${isDarkMode ? "text-white" : "text-gray-900"}`}>Competitor Segmentation</h3>
+            <p className={`text-[11px] mt-0.5 ${isDarkMode ? "text-white/45" : "text-gray-500"}`}>Filter charts and overview matrices by custom tracked lists.</p>
           </div>
 
-          <div className="flex flex-wrap p-1 bg-white/[0.02] border border-white/5 rounded-xl gap-1">
+          <div className={`flex flex-wrap p-1 rounded-xl gap-1 ${isDarkMode ? "bg-white/[0.02] border border-white/5" : "bg-black/[0.02] border border-black/5"}`}>
             {(["All", "Primary Rivals", "Emerging Threats", "Niche Inspiration"] as const).map((gTab) => {
               const isActive = activeGroupTab === gTab;
               return (
@@ -592,7 +600,9 @@ export function CompetitorAnalysisView({
                   className={`rounded-lg px-3.5 py-1.5 text-[10px] font-mono font-black uppercase tracking-wider cursor-pointer active:scale-95 transition-all w-full sm:w-auto text-center ${
                     isActive
                       ? "bg-[#00F0FF] text-black font-extrabold shadow-[0_0_15px_rgba(0,240,255,0.25)]"
-                      : "text-white/60 hover:text-white hover:bg-white/5"
+                      : isDarkMode 
+                        ? "text-white/60 hover:text-white hover:bg-white/5" 
+                        : "text-gray-600 hover:text-gray-900 hover:bg-black/5"
                   }`}
                 >
                   {gTab === "All" ? "ALL SYSTEMS" : gTab}
@@ -605,9 +615,9 @@ export function CompetitorAnalysisView({
         {/* If no active competitors match active group, render empty states gracefully */}
         {activeCompetitors.length === 0 ? (
           <div className="py-20 text-center flex flex-col items-center justify-center gap-3">
-            <AlertCircle className="w-8 h-8 text-white/30" />
-            <h4 className="text-sm font-black text-white">No active competitors inside filter segment</h4>
-            <p className="text-xs text-white/40 max-w-sm">
+            <AlertCircle className={`w-8 h-8 ${isDarkMode ? "text-white/30" : "text-gray-400"}`} />
+            <h4 className={`text-sm font-black ${isDarkMode ? "text-white" : "text-gray-900"}`}>No active competitors inside filter segment</h4>
+            <p className={`text-xs max-w-sm ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>
               Use the sliders below or the custom competitors overview list to categorize your active tracked accounts into this group tag!
             </p>
           </div>
@@ -618,10 +628,10 @@ export function CompetitorAnalysisView({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-xs font-black uppercase tracking-widest text-white font-mono flex items-center gap-1.5">
+                  <h4 className={`text-xs font-black uppercase tracking-widest font-mono flex items-center gap-1.5 ${isDarkMode ? "text-white" : "text-gray-900"}`}>
                     <BarChart3 className="w-4 h-4 text-[#00F0FF]" /> Avg Engagement / Likes Comparison
                   </h4>
-                  <p className="text-[10px] text-white/40 mt-0.5">
+                  <p className={`text-[10px] mt-0.5 ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>
                     Comparative likes value and engagement indices parsed from recent crawls
                   </p>
                 </div>
@@ -630,18 +640,18 @@ export function CompetitorAnalysisView({
                 </span>
               </div>
 
-              <div className="h-[280px] w-full bg-white/[0.01] border border-white/5 rounded-xl p-4 flex items-center justify-center">
+              <div className={`h-[280px] w-full border rounded-xl p-4 flex items-center justify-center ${isDarkMode ? "bg-white/[0.01] border-white/5" : "bg-black/[0.01] border-black/5"}`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={barChartData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#222" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? "#222" : "#e5e5e5"} />
                     <XAxis 
                       dataKey="name" 
-                      stroke="#white" 
-                      tick={{ fill: "#666", fontSize: 9, fontWeight: "bold" }}
+                      stroke={isDarkMode ? "#444" : "#888"} 
+                      tick={{ fill: isDarkMode ? "#888" : "#555", fontSize: 9, fontWeight: "bold" }}
                     />
                     <YAxis 
-                      stroke="#white" 
-                      tick={{ fill: "#666", fontSize: 8 }}
+                      stroke={isDarkMode ? "#444" : "#888"} 
+                      tick={{ fill: isDarkMode ? "#888" : "#555", fontSize: 8 }}
                       tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}
                     />
                     <RechartsTooltip
@@ -649,12 +659,14 @@ export function CompetitorAnalysisView({
                         if (active && payload && payload.length) {
                           const data = payload[0].payload;
                           return (
-                            <div className="bg-[#0A0A0B] border border-white/10 p-3 rounded-xl text-xs space-y-1 font-mono">
-                              <p className="font-bold text-white uppercase">{data.name}</p>
+                            <div className={`border p-3 rounded-xl text-xs space-y-1 font-mono shadow-md ${
+                              isDarkMode ? "bg-[#0A0A0B] border-white/10 text-white" : "bg-white border-black/10 text-gray-900"
+                            }`}>
+                              <p className={`font-bold uppercase ${isDarkMode ? "text-white" : "text-gray-900"}`}>{data.name}</p>
                               <p className="text-[#00F0FF]">{data.handle}</p>
-                              <div className="border-t border-white/5 my-1.5" />
-                              <p className="text-white/80">Avg Likes: <span className="text-white font-bold">{data.likesDisplay}</span></p>
-                              <p className="text-white/80">Engagement Score: <span className="text-[#39FF14] font-bold">{data.engagementScore}%</span></p>
+                              <div className={`border-t my-1.5 ${isDarkMode ? "border-white/5" : "border-black/5"}`} />
+                              <p className={`${isDarkMode ? "text-white/80" : "text-gray-700"}`}>Avg Likes: <span className={`font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>{data.likesDisplay}</span></p>
+                              <p className={`${isDarkMode ? "text-white/80" : "text-gray-700"}`}>Engagement Score: <span className="text-[#39FF14] font-bold">{data.engagementScore}%</span></p>
                             </div>
                           );
                         }
@@ -679,7 +691,7 @@ export function CompetitorAnalysisView({
                   <h4 className="text-xs font-black uppercase tracking-widest text-amber-400 font-mono flex items-center gap-1.5">
                     <Flame className="w-4 h-4 text-amber-400" /> Multi-Dimensional Performance Radar
                   </h4>
-                  <p className="text-[10px] text-white/40 mt-0.5">
+                  <p className={`text-[10px] mt-0.5 ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>
                     Analyzing Avg engagement, Posting freq, Duration, Hook strength, & CTA converter
                   </p>
                 </div>
@@ -688,18 +700,18 @@ export function CompetitorAnalysisView({
                 </span>
               </div>
 
-              <div className="h-[280px] w-full bg-white/[0.01] border border-white/5 rounded-xl p-3 flex items-center justify-center">
+              <div className={`h-[280px] w-full border rounded-xl p-3 flex items-center justify-center ${isDarkMode ? "bg-white/[0.01] border-white/5" : "bg-black/[0.01] border-black/5"}`}>
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarChartData}>
-                    <PolarGrid stroke="#2e2e2e" />
+                    <PolarGrid stroke={isDarkMode ? "#2e2e2e" : "#e5e5e5"} />
                     <PolarAngleAxis 
                       dataKey="subject" 
-                      tick={{ fill: "#999", fontSize: 8, fontWeight: "bold" }}
+                      tick={{ fill: isDarkMode ? "#999" : "#444", fontSize: 8, fontWeight: "bold" }}
                     />
                     <PolarRadiusAxis 
                       angle={30} 
                       domain={[0, 100]} 
-                      tick={{ fill: "#444", fontSize: 7 }}
+                      tick={{ fill: isDarkMode ? "#777" : "#555", fontSize: 7 }}
                     />
                     
                     {/* Render overlays for up to 4 active competitors in active group tab */}
@@ -707,12 +719,12 @@ export function CompetitorAnalysisView({
                       const colorScheme = radarColors[groupIdx % radarColors.length];
                       return (
                         <Radar
-                          key={comp.id}
-                          name={comp.name}
-                          dataKey={`comp_${comp.id}`}
-                          stroke={colorScheme.stroke}
-                          fill={colorScheme.fill}
-                          fillOpacity={0.12}
+                           key={comp.id}
+                           name={comp.name}
+                           dataKey={`comp_${comp.id}`}
+                           stroke={colorScheme.stroke}
+                           fill={colorScheme.fill}
+                           fillOpacity={0.12}
                         />
                       );
                     })}
@@ -721,7 +733,7 @@ export function CompetitorAnalysisView({
                       verticalAlign="bottom" 
                       align="center"
                       iconSize={8}
-                      wrapperStyle={{ fontSize: 9, color: "#888", fontWeight: "black", textTransform: "uppercase" }}
+                      wrapperStyle={{ fontSize: 9, color: isDarkMode ? "#888" : "#555", fontWeight: "black", textTransform: "uppercase" }}
                     />
                   </RadarChart>
                 </ResponsiveContainer>
@@ -735,16 +747,16 @@ export function CompetitorAnalysisView({
       {/* 4. COMPARISON MODE VIEW: Side-By-Side (Requirement 2) */}
       <div className={`p-6 sm:p-8 rounded-2xl border transition-all duration-300 ${isDarkMode ? "bg-[#0E0E0E] border-white/10" : "bg-white border-black/5 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"}`}>
         
-        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-5 mb-6 gap-4">
+        <div className={`flex flex-col md:flex-row md:items-center justify-between border-b pb-5 mb-6 gap-4 ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
           <div>
             <span className="text-[9px] font-mono tracking-widest uppercase text-purple-400 font-bold">MODE: DYNAMIC MATRICES</span>
-            <h3 className="text-sm font-black text-white uppercase tracking-tight">Competitors Side-By-Side Battle board</h3>
-            <p className="text-[11px] text-white/45 mt-0.5">Select any 2 to 3 competitors below to isolate and audit their primary content blueprints.</p>
+            <h3 className={`text-sm font-black uppercase tracking-tight ${isDarkMode ? "text-white" : "text-gray-900"}`}>Competitors Side-By-Side Battle board</h3>
+            <p className={`text-[11px] mt-0.5 ${isDarkMode ? "text-white/45" : "text-gray-500"}`}>Select any 2 to 3 competitors below to isolate and audit their primary content blueprints.</p>
           </div>
 
           {/* Quick interactive selector list of checkboxes */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[10px] font-mono text-white/40 uppercase mr-1">Track Selectors:</span>
+            <span className={`text-[10px] font-mono uppercase mr-1 ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>Track Selectors:</span>
             {competitors.filter(c => c.status === "Active").map(comp => {
               const isSelected = comparedCompIds.includes(comp.id);
               return (
@@ -754,10 +766,12 @@ export function CompetitorAnalysisView({
                   className={`px-3 py-1.5 rounded-full text-[10px] font-bold font-mono transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 ${
                     isSelected
                       ? "bg-purple-500/10 border border-purple-500 text-purple-400"
-                      : "bg-white/[0.02] border border-white/10 text-white/50 hover:text-white"
+                      : isDarkMode
+                        ? "bg-white/[0.02] border border-white/10 text-white/50 hover:text-white"
+                        : "bg-black/[0.02] border border-black/10 text-gray-500 hover:text-gray-900"
                   }`}
                 >
-                  {isSelected ? <Check className="w-3 h-3 text-purple-400" /> : <Plus className="w-3 h-3 text-white/30" />}
+                  {isSelected ? <Check className="w-3 h-3 text-purple-400" /> : <Plus className={`w-3 h-3 ${isDarkMode ? "text-white/30" : "text-gray-400"}`} />}
                   {comp.name}
                 </button>
               );
@@ -770,47 +784,57 @@ export function CompetitorAnalysisView({
           const selectedComps = competitors.filter(c => comparedCompIds.includes(c.id));
           if (selectedComps.length === 0) {
             return (
-              <div className="py-12 text-center text-xs text-white/30 italic">
+              <div className={`py-12 text-center text-xs italic ${isDarkMode ? "text-white/30" : "text-gray-400"}`}>
                 Activate competitor badges above to formulate a side-by-side battle board!
               </div>
             );
           }
           return (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border border-white/5 rounded-xl border-collapse">
+              <table className={`w-full text-left text-xs border rounded-xl border-collapse ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
                 <thead>
-                  <tr className="bg-white/[0.02] border-b border-white/5 text-[9px] uppercase tracking-widest text-white/45 font-mono">
-                    <th scope="col" className="p-4 border-r border-white/5 min-w-[140px]">Strategic Attribute</th>
+                  <tr className={`border-b text-[9px] uppercase tracking-widest font-mono ${
+                    isDarkMode ? "bg-white/[0.02] border-white/5 text-white/45" : "bg-black/[0.01] border-black/5 text-gray-500"
+                  }`}>
+                    <th scope="col" className={`p-4 border-r min-w-[140px] ${isDarkMode ? "border-white/5" : "border-black/5"}`}>Strategic Attribute</th>
                     {selectedComps.map(comp => (
-                      <th scope="col" key={comp.id} className="p-4 border-r border-white/5 min-w-[220px]">
+                      <th scope="col" key={comp.id} className={`p-4 border-r min-w-[220px] ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
                         <div className="flex items-center gap-2.5">
-                          <span className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs text-[#00F0FF] border border-white/10 uppercase">
+                          <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-[#00F0FF] border uppercase ${
+                            isDarkMode ? "bg-slate-800 border-white/10" : "bg-slate-900 border-black/10 shadow-xs"
+                          }`}>
                             {comp.name.substring(0, 2)}
                           </span>
                           <div>
-                            <p className="font-bold text-white text-xs">{comp.name}</p>
-                            <p className="text-[10px] text-white/40 font-mono">@{comp.username}</p>
+                            <p className={`font-bold text-xs ${isDarkMode ? "text-white" : "text-gray-900"}`}>{comp.name}</p>
+                            <p className={`text-[10px] font-mono ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>@{comp.username}</p>
                           </div>
                         </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 text-white/80 font-sans">
+                <tbody className={`divide-y font-sans ${
+                  isDarkMode ? "divide-white/5 text-white/80" : "divide-black/5 text-gray-750"
+                }`}>
                   
                   {/* Row 1: Handles and Platform Info */}
-                  <tr className="hover:bg-white/[0.01] transition-colors">
-                    <td className="p-4 font-mono font-bold text-[10px] text-white/40 uppercase tracking-wider bg-white/[0.01] border-r border-white/5">Primary channel</td>
+                  <tr className={`transition-colors ${isDarkMode ? "hover:bg-white/[0.01]" : "hover:bg-black/[0.01]"}`}>
+                    <td className={`p-4 font-mono font-bold text-[10px] uppercase tracking-wider border-r ${
+                      isDarkMode ? "text-white/40 bg-white/[0.01] border-white/5" : "text-gray-500 bg-gray-50/55 border-black/5"
+                    }`}>Primary channel</td>
                     {selectedComps.map(comp => (
-                      <td key={comp.id} className="p-4 border-r border-white/5">
-                        <span className="inline-flex px-2 py-1 rounded bg-slate-900 border border-white/10 font-mono text-[9px] font-semibold text-white/70">
+                      <td key={comp.id} className={`p-4 border-r ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+                        <span className={`inline-flex px-2 py-1 rounded font-mono text-[9px] font-semibold ${
+                          isDarkMode ? "bg-slate-900 border border-white/10 text-white/70" : "bg-gray-150 border border-black/10 text-gray-700"
+                        }`}>
                           {comp.platform.toUpperCase()}
                         </span>
                         <a 
                           href={comp.profileUrl} 
                           target="_blank" 
                           rel="noreferrer" 
-                          className="ml-2 text-[10px] text-[#00F0FF] hover:underline inline-flex items-center gap-0.5"
+                          className="ml-2 text-[10px] text-[#00F0FF] hover:underline inline-flex items-center gap-0.5 font-bold"
                         >
                           Launch Profile
                         </a>
@@ -819,18 +843,24 @@ export function CompetitorAnalysisView({
                   </tr>
 
                   {/* Row 2: Baseline score comparison */}
-                  <tr className="hover:bg-white/[0.01] transition-colors">
-                    <td className="p-4 font-mono font-bold text-[10px] text-white/40 uppercase tracking-wider bg-white/[0.01] border-r border-white/5">Avg likes scale</td>
+                  <tr className={`transition-colors ${isDarkMode ? "hover:bg-white/[0.01]" : "hover:bg-black/[0.01]"}`}>
+                    <td className={`p-4 font-mono font-bold text-[10px] uppercase tracking-wider border-r ${
+                      isDarkMode ? "text-white/40 bg-white/[0.01] border-white/5" : "text-gray-500 bg-gray-50/55 border-black/5"
+                    }`}>Avg likes scale</td>
                     {selectedComps.map(comp => (
-                      <td key={comp.id} className="p-4 border-r border-white/5 font-semibold text-white text-xs">
+                      <td key={comp.id} className={`p-4 border-r font-semibold text-xs ${
+                        isDarkMode ? "border-white/5 text-white" : "border-black/5 text-gray-900"
+                      }`}>
                         {comp.likes || "0 avg"}
                       </td>
                     ))}
                   </tr>
 
                   {/* Row 3: Video Pillars (Niche / Content Focus focus, Duration) */}
-                  <tr className="hover:bg-white/[0.01] transition-colors">
-                    <td className="p-4 font-mono font-bold text-[10px] text-purple-400 uppercase tracking-wider bg-white/[0.01] border-r border-white/5">
+                  <tr className={`transition-colors ${isDarkMode ? "hover:bg-white/[0.01]" : "hover:bg-black/[0.01]"}`}>
+                    <td className={`p-4 font-mono font-bold text-[10px] uppercase tracking-wider border-r text-purple-400 ${
+                      isDarkMode ? "bg-white/[0.01] border-white/5" : "bg-gray-50/55 border-black/5"
+                    }`}>
                       <div className="flex items-center gap-1">
                         <BookOpen className="w-3.5 h-3.5" />
                         <span>Video Pillars</span>
@@ -839,14 +869,16 @@ export function CompetitorAnalysisView({
                     {selectedComps.map(comp => {
                       const stats = getCompetitorRadarMetrics(comp);
                       return (
-                        <td key={comp.id} className="p-4 border-r border-white/5 space-y-2">
+                        <td key={comp.id} className={`p-4 border-r space-y-2 ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
                           <div>
-                            <p className="text-[10px] font-mono font-bold tracking-wider text-white/40 uppercase mb-0.5">Core Content Domain</p>
-                            <p className="text-xs text-white/95 leading-relaxed bg-[#111] p-2.5 rounded-lg border border-white/5">{comp.focus || "Creative strategy"}</p>
+                            <p className={`text-[10px] font-mono font-bold tracking-wider uppercase mb-0.5 ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>Core Content Domain</p>
+                            <p className={`text-xs leading-relaxed p-2.5 rounded-lg border ${
+                              isDarkMode ? "bg-[#111] border-white/5 text-white/95" : "bg-gray-50 border-black/5 text-gray-900"
+                            }`}>{comp.focus || "Creative strategy"}</p>
                           </div>
                           <div>
-                            <p className="text-[10px] font-mono font-bold tracking-wider text-white/40 uppercase mb-0.5">Video Duration Profile</p>
-                            <p className="text-xs text-white/80 font-semibold">{stats.videoDuration} seconds average formats</p>
+                            <p className={`text-[10px] font-mono font-bold tracking-wider uppercase mb-0.5 ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>Video Duration Profile</p>
+                            <p className={`text-xs font-semibold ${isDarkMode ? "text-white/80" : "text-gray-800"}`}>{stats.videoDuration} seconds average formats</p>
                           </div>
                         </td>
                       );
@@ -854,24 +886,30 @@ export function CompetitorAnalysisView({
                   </tr>
 
                   {/* Row 4: Engagement Triggers (Hook analysis, CTA conversions used) */}
-                  <tr className="hover:bg-white/[0.01] transition-colors">
-                    <td className="p-4 font-mono font-bold text-[10px] text-orange-400 uppercase tracking-wider bg-white/[0.01] border-r border-white/5">
+                  <tr className={`transition-colors ${isDarkMode ? "hover:bg-white/[0.01]" : "hover:bg-black/[0.01]"}`}>
+                    <td className={`p-4 font-mono font-bold text-[10px] uppercase tracking-wider border-r text-orange-400 ${
+                      isDarkMode ? "bg-white/[0.01] border-white/5" : "bg-gray-50/55 border-black/5"
+                    }`}>
                       <div className="flex items-center gap-1">
                         <Flame className="w-3.5 h-3.5" />
                         <span>Engagement Triggers</span>
                       </div>
                     </td>
                     {selectedComps.map(comp => (
-                      <td key={comp.id} className="p-4 border-r border-white/5 space-y-2.5">
+                      <td key={comp.id} className={`p-4 border-r space-y-2.5 ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
                         <div>
-                          <p className="text-[10px] font-mono font-bold tracking-wider text-white/40 uppercase mb-0.5">Scroll-stopping Hook line</p>
-                          <p className="text-xs text-white/95 leading-normal bg-orange-950/10 p-2.5 rounded-lg border border-orange-500/10 italic">
-                            "{comp.hook || "Dynamic hooks and pattern interrupts"}"
+                          <p className={`text-[10px] font-mono font-bold tracking-wider uppercase mb-0.5 ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>Scroll-stopping Hook line</p>
+                          <p className={`text-xs leading-normal p-2.5 rounded-lg border italic ${
+                            isDarkMode ? "bg-orange-950/10 border-orange-500/10 text-white/95" : "bg-orange-50 border-orange-200 text-gray-900"
+                          }`}>
+                            &ldquo;{comp.hook || "Dynamic hooks and pattern interrupts"}&rdquo;
                           </p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-mono font-bold tracking-wider text-white/40 uppercase mb-0.5">Automated CTA Call-to-action</p>
-                          <p className="text-xs text-white/95 leading-normal bg-purple-950/10 p-2.5 rounded-lg border border-purple-500/10 font-mono">
+                          <p className={`text-[10px] font-mono font-bold tracking-wider uppercase mb-0.5 ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>Automated CTA Call-to-action</p>
+                          <p className={`text-xs leading-normal p-2.5 rounded-lg border font-mono ${
+                            isDarkMode ? "bg-purple-950/10 border-purple-500/10 text-white/95" : "bg-purple-50 border-purple-200 text-gray-900"
+                          }`}>
                             {comp.cta || "Comment 'GET' for resources link"}
                           </p>
                         </div>
@@ -880,10 +918,14 @@ export function CompetitorAnalysisView({
                   </tr>
 
                   {/* Row 5: Notes / Curated format insight details */}
-                  <tr className="hover:bg-white/[0.01] transition-colors">
-                    <td className="p-4 font-mono font-bold text-[10px] text-white/40 uppercase tracking-wider bg-white/[0.01] border-r border-white/5">Format intelligence</td>
+                  <tr className={`transition-colors ${isDarkMode ? "hover:bg-white/[0.01]" : "hover:bg-black/[0.01]"}`}>
+                    <td className={`p-4 font-mono font-bold text-[10px] uppercase tracking-wider border-r ${
+                      isDarkMode ? "text-white/40 bg-white/[0.01] border-white/5" : "text-gray-500 bg-gray-50/55 border-black/5"
+                    }`}>Format intelligence</td>
                     {selectedComps.map(comp => (
-                      <td key={comp.id} className="p-4 border-r border-white/5 text-white/60 leading-relaxed text-[11px] italic">
+                      <td key={comp.id} className={`p-4 border-r leading-relaxed text-[11px] italic ${
+                        isDarkMode ? "border-white/5 text-white/60" : "border-black/5 text-gray-650"
+                      }`}>
                         {comp.notes || "No documentation logs registered."}
                       </td>
                     ))}
@@ -899,9 +941,9 @@ export function CompetitorAnalysisView({
       {/* 5. INDIVIDUAL ALLOCATION MANAGER */}
       <div className={`p-6 sm:p-8 rounded-2xl border transition-all duration-300 ${isDarkMode ? "bg-[#0E0E0E] border-white/10" : "bg-white border-black/5 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"}`}>
         <div>
-          <span className="text-[9px] font-mono tracking-widest uppercase text-white/40">CONFIG GRID</span>
-          <h3 className="text-sm font-black text-white uppercase tracking-tight">Tracked Competitor Group Alignment</h3>
-          <p className="text-xs text-white/40 mt-1">
+          <span className={`text-[9px] font-mono tracking-widest uppercase ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>CONFIG GRID</span>
+          <h3 className={`text-sm font-black uppercase tracking-tight ${isDarkMode ? "text-white" : "text-gray-900"}`}>Tracked Competitor Group Alignment</h3>
+          <p className={`text-xs mt-1 ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>
             Segment your active creators into focus buckets. Changes here immediately recalculate visual segments, tabs, and interactive overlays.
           </p>
         </div>
@@ -912,16 +954,20 @@ export function CompetitorAnalysisView({
             return (
               <div 
                 key={comp.id} 
-                className="p-4 rounded-xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.02] hover:border-white/10 transition-all flex flex-col justify-between gap-3.5"
+                className={`p-4 rounded-xl border transition-all flex flex-col justify-between gap-3.5 ${
+                  isDarkMode 
+                    ? "border-white/5 bg-white/[0.01] hover:bg-white/[0.02] hover:border-white/10" 
+                    : "border-black/5 bg-black/[0.01] hover:bg-black/[0.02] hover:border-black/10"
+                }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h4 className="font-bold text-white text-xs">{comp.name}</h4>
-                    <p className="text-[10px] font-mono text-white/40">@{comp.username}</p>
+                    <h4 className={`font-bold text-xs ${isDarkMode ? "text-white" : "text-gray-900"}`}>{comp.name}</h4>
+                    <p className={`text-[10px] font-mono ${isDarkMode ? "text-white/40" : "text-gray-500"}`}>@{comp.username}</p>
                   </div>
                   <span className={`text-[8px] font-mono font-semibold uppercase px-2 py-0.5 rounded ${
                     currentGroup === "Primary Rivals"
-                      ? "bg-red-400/10 text-red-400 border border-red-500/10"
+                      ? "bg-red-400/10 text-red-500 border border-red-500/10"
                       : currentGroup === "Emerging Threats"
                         ? "bg-amber-400/10 text-amber-400 border border-amber-500/10"
                         : "bg-emerald-400/10 text-emerald-400 border border-emerald-500/10"
@@ -930,12 +976,16 @@ export function CompetitorAnalysisView({
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between border-t border-white/5 pt-3">
-                  <span className="text-[10px] font-mono text-white/30">Move Category:</span>
+                <div className={`flex items-center justify-between border-t pt-3 ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+                  <span className={`text-[10px] font-mono ${isDarkMode ? "text-white/30" : "text-gray-500"}`}>Move Category:</span>
                   <select
                     value={currentGroup}
                     onChange={(e) => handleMoveGroup(comp.id, e.target.value as GroupName)}
-                    className="bg-[#111] border border-white/10 text-white font-sans text-[10px] rounded p-1 shadow-sm font-medium outline-none focus:border-[#00F0FF]/50"
+                    className={`font-sans text-[10px] rounded p-1 shadow-sm font-medium outline-none focus:border-[#00F0FF]/50 ${
+                      isDarkMode 
+                        ? "bg-[#111] border border-white/10 text-white" 
+                        : "bg-white border border-black/10 text-gray-900"
+                    }`}
                   >
                     <option value="Primary Rivals">Primary Rivals</option>
                     <option value="Emerging Threats">Emerging Threats</option>

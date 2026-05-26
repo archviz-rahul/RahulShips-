@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI, Type } from "@google/genai";
 import { getGemini, getGeminiModel } from "@/lib/gemini";
 import { readAISettingsStore, decryptKey } from "@/lib/aiSettingsStore";
+import { getConceptSystemInstruction } from "@/lib/thumbnail/conceptPrompts";
 
 function getGenAI(): GoogleGenAI {
   return getGemini();
@@ -96,7 +97,7 @@ async function generateContentWithFallback(
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action, topic, whyItMatters, hook, scriptText, pillarColor } = body;
+    const { action, topic, whyItMatters, hook, scriptText, pillarColor, pillar } = body;
 
     if (!action) {
       return NextResponse.json({ success: false, error: "Action parameter is required" }, { status: 400 });
@@ -268,6 +269,72 @@ Provide exactly 4 catchy, high-engagement viral short-form video hooks. Formatte
         ],
         note: "System running under automated proxy. Curated top hook trends retrieved."
       });
+    }
+
+    // --- CASE 1B: Generate Thumbnail Concept ---
+    if (action === "generate-concept") {
+      if (!topic) {
+        return NextResponse.json({ success: false, error: "Topic is required" }, { status: 400 });
+      }
+      const activePillar = pillar || "Archviz + AI";
+      const systemInstruction = getConceptSystemInstruction(activePillar);
+
+      // Check if we have standard API key
+      if (!hasApiKey) {
+        // High fidelity fallback concept
+        const defaultConcept = {
+          layoutType: "Right-aligned split card",
+          titleText: activePillar === "Archviz + AI" ? "AI RENDERS SECRETS" : activePillar === "Trading + Systems" ? "MATRIX TRADING LOG" : activePillar === "Vibe Coding" ? "CODE IN 3 SECONDS" : "BUILD IN PUBLIC",
+          subtitleText: activePillar === "Archviz + AI" ? "Unreal Engine Workflow" : activePillar === "Trading + Systems" ? "Complete Analytics Logs" : activePillar === "Vibe Coding" ? "Zero settings required" : "How we scaled to $10k",
+          overlayStyle: "Vibrant custom vignetting overlay",
+          suggestedPrompt: `A beautiful scenic background illustration matching ${activePillar}`,
+          primaryColor: activePillar === "Archviz + AI" ? "#FFB800" : activePillar === "Trading + Systems" ? "#39FF14" : activePillar === "Vibe Coding" ? "#00E5FF" : "#FF6B35",
+          secondaryColor: "#0A0A0B"
+        };
+        return NextResponse.json({ success: true, concept: defaultConcept, fallbackUsed: true });
+      }
+
+      try {
+        const ai = getGenAI();
+        const contentModel = getGeminiModel("content", "gemini-3.5-flash");
+        const { response, modelUsed } = await generateContentWithFallback(ai, {
+          model: contentModel,
+          contents: `Analyze this content topic/description: "${topic}" and generate a high-CTR thumbnail concept conforming to the brand style guidelines.`,
+          config: {
+            systemInstruction,
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: Type.OBJECT,
+              properties: {
+                layoutType: { type: Type.STRING },
+                titleText: { type: Type.STRING },
+                subtitleText: { type: Type.STRING },
+                overlayStyle: { type: Type.STRING },
+                suggestedPrompt: { type: Type.STRING },
+                primaryColor: { type: Type.STRING },
+                secondaryColor: { type: Type.STRING }
+              },
+              required: ["layoutType", "titleText", "subtitleText", "overlayStyle", "suggestedPrompt", "primaryColor", "secondaryColor"]
+            }
+          }
+        });
+
+        const parsed = JSON.parse(response.text || "{}");
+        return NextResponse.json({ success: true, concept: parsed, selectedModel: modelUsed });
+      } catch (err: any) {
+        console.warn("Gemini generate-concept failed, falling back gracefully: ", err);
+        // Fallback concept on error
+        const errorConcept = {
+          layoutType: "Standard left display focal card",
+          titleText: "AI WORKFLOW PLAN",
+          subtitleText: "Complete strategy blueprint",
+          overlayStyle: "Soft vignette gradients",
+          suggestedPrompt: `Scenic aesthetic rendering illustrating ${topic}`,
+          primaryColor: activePillar === "Archviz + AI" ? "#FFB800" : activePillar === "Trading + Systems" ? "#39FF14" : activePillar === "Vibe Coding" ? "#00E5FF" : "#FF6B35",
+          secondaryColor: "#0A0A0B"
+        };
+        return NextResponse.json({ success: true, concept: errorConcept, error: err.message, fallbackUsed: true });
+      }
     }
 
     // --- CASE 2: Generate Video Script ---
