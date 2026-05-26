@@ -64,6 +64,7 @@ import {
 } from "recharts";
 
 import { AIStudioView } from "@/components/AIStudioView";
+import { CompetitorAnalysisView } from "@/components/CompetitorAnalysisView";
 
 // Standard types
 interface Topic {
@@ -5630,6 +5631,7 @@ export default function ContentCopilotPage() {
 
   const analyticsItems = [
     { id: "competitors", label: "Competitors", icon: Users },
+    { id: "competitor-analysis", label: "Competitor Analysis", icon: TrendingUp },
     { id: "sources", label: "Sources", icon: Compass },
     { id: "history", label: "History", icon: Clock },
     { id: "settings", label: "Settings", icon: Settings },
@@ -7935,6 +7937,15 @@ export default function ContentCopilotPage() {
         {/* Custom Nav Subview Injection */}
         {activeView === "ai-studio" && <AIStudioView />}
         {activeView === "hook-bank" && <HookBank />}
+        {activeView === "competitor-analysis" && (
+          <CompetitorAnalysisView 
+            isDarkMode={isDarkMode} 
+            showToast={showToast} 
+            activeConfig={activeConfig} 
+            competitors={competitors} 
+            fetchCompetitors={fetchCompetitors} 
+          />
+        )}
         {activeView === "sources" && <SourcesView />}
         {activeView === "pictures" && <PicturesView />}
         {activeView === "strategy" && <StrategyView />}
