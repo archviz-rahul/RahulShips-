@@ -63,6 +63,8 @@ import {
   ResponsiveContainer
 } from "recharts";
 
+import { AIStudioView } from "@/components/AIStudioView";
+
 // Standard types
 interface Topic {
   topic: string;
@@ -419,6 +421,7 @@ export default function ContentCopilotPage() {
 
   const [competitors, setCompetitors] = useState<DBCompetitor[]>([]);
   const [isCompetitorsLoading, setIsCompetitorsLoading] = useState<boolean>(true);
+  const [isCompetitorsCollapsed, setIsCompetitorsCollapsed] = useState<boolean>(false);
 
   // Search state
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -1010,6 +1013,9 @@ export default function ContentCopilotPage() {
 
   const handleNavigate = (view: string) => {
     setActiveView(view);
+    if (view === "competitors") {
+      setIsCompetitorsCollapsed(false);
+    }
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       params.set("view", view);
@@ -5616,6 +5622,7 @@ export default function ContentCopilotPage() {
 
   const creativeItems = [
     { id: "daily-brief", label: "Daily Brief", icon: Home },
+    { id: "ai-studio", label: "AI Studio", icon: Sparkles },
     { id: "hook-bank", label: "Hook Bank", icon: Radio },
     { id: "pictures", label: "Pictures", icon: ImageIcon },
     { id: "strategy", label: "Strategy", icon: Lightbulb },
@@ -5994,7 +6001,7 @@ export default function ContentCopilotPage() {
             
             {/* Left panel: Curator Setup / Defining Directives */}
             {activeView === "daily-brief" && (
-              <div className="lg:col-span-5 flex flex-col gap-6">
+              <div className={`flex flex-col gap-6 transition-all duration-500 ease-in-out ${isCompetitorsCollapsed ? "lg:col-span-12" : "lg:col-span-5"}`}>
             <div className={`p-6 sm:p-7 rounded-2xl border flex flex-col gap-6 relative overflow-hidden transition-colors duration-300 ${isDarkMode ? "bg-[#0E0E0E] border-white/10" : "bg-white border-black/5 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"}`}>
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl" style={{ backgroundColor: `${activeConfig.color}05` }} />
               
@@ -6125,7 +6132,13 @@ export default function ContentCopilotPage() {
             </div>
             )}
             {/* Right panel: Competitor Intelligence Map */}
-            <div className={`${activeView === "competitors" ? "lg:col-span-12 p-6 sm:p-8" : "lg:col-span-7 p-6 sm:p-7"} rounded-2xl border flex flex-col gap-5 transition-all duration-300 ${isDarkMode ? "bg-[#0E0E0E] border-white/10" : "bg-white border-black/5 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"}`}>
+            <div className={`rounded-2xl border flex flex-col gap-5 transition-all duration-500 ease-in-out ${
+              activeView === "competitors" 
+                ? "lg:col-span-12 p-6 sm:p-8" 
+                : isCompetitorsCollapsed 
+                  ? "lg:col-span-12 p-5 sm:p-6" 
+                  : "lg:col-span-7 p-6 sm:p-7"
+            } ${isDarkMode ? "bg-[#0E0E0E] border-white/10" : "bg-white border-black/5 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"}`}>
             <div>
               <div className="flex items-center justify-between">
                 <h3 className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 font-display" style={{ color: activeConfig.color }}>
@@ -6135,29 +6148,60 @@ export default function ContentCopilotPage() {
                   <div className={`text-[10px] px-2.5 py-1 rounded border font-mono transition-colors duration-300 ${isDarkMode ? "text-white/40 bg-white/5 border-white/5" : "text-gray-600 bg-gray-100 border-gray-200"}`}>
                     {competitors.length} ACCOUNTS ANALYZED
                   </div>
+                  
+                  {/* Collapse Toggle Button */}
                   <button
-                    onClick={() => {
-                      clearCsvState();
-                      setIsCsvModalOpen(true);
-                    }}
+                    type="button"
+                    onClick={() => setIsCompetitorsCollapsed(!isCompetitorsCollapsed)}
+                    id="competitors-collapse-toggle"
                     className={`rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider cursor-pointer active:scale-95 transition-all flex items-center gap-1 border ${
                       isDarkMode 
-                        ? "border-[#00F0FF]/30 hover:border-[#00F0FF] text-[#00F0FF] bg-[#00F0FF]/5 hover:bg-[#00F0FF]/15 shadow-sm shadow-[#00F0FF]/10" 
-                        : "border-[#00A8B5]/30 hover:border-[#00A8B5] text-[#00A8B5] bg-[#00A8B5]/5 hover:bg-[#00A8B5]/15 shadow-sm shadow-[#00A8B5]/10"
+                        ? "border-white/10 hover:border-white/20 text-white/80 hover:text-white bg-white/5 hover:bg-white/10" 
+                        : "border-gray-200 hover:border-gray-300 text-gray-705 hover:text-black bg-gray-50 hover:bg-gray-100"
                     }`}
                   >
-                    <Upload className="w-3.5 h-3.5" /> Import CSV
+                    <span>{isCompetitorsCollapsed ? "Expand Hub" : "Collapse Hub"}</span>
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${isCompetitorsCollapsed ? "rotate-180" : "rotate-0"}`} />
                   </button>
-                  <button
-                    onClick={handleOpenAdd}
-                    className="rounded-full px-3 py-1.5 bg-[#F97316] text-white hover:bg-orange-600 text-[10px] font-black uppercase tracking-wider cursor-pointer active:scale-95 transition-all flex items-center gap-1 shadow-md shadow-orange-500/20"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> Add Competitor
-                  </button>
+
+                  {!isCompetitorsCollapsed && (
+                    <>
+                      <button
+                        onClick={() => {
+                          clearCsvState();
+                          setIsCsvModalOpen(true);
+                        }}
+                        className={`rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider cursor-pointer active:scale-95 transition-all flex items-center gap-1 border ${
+                          isDarkMode 
+                            ? "border-[#00F0FF]/30 hover:border-[#00F0FF] text-[#00F0FF] bg-[#00F0FF]/5 hover:bg-[#00F0FF]/15 shadow-sm shadow-[#00F0FF]/10" 
+                            : "border-[#00A8B5]/30 hover:border-[#00A8B5] text-[#00A8B5] bg-[#00A8B5]/5 hover:bg-[#00A8B5]/15 shadow-sm shadow-[#00A8B5]/10"
+                        }`}
+                      >
+                        <Upload className="w-3.5 h-3.5" /> Import CSV
+                      </button>
+                      <button
+                        onClick={handleOpenAdd}
+                        className="rounded-full px-3 py-1.5 bg-[#F97316] text-[#FFF] hover:bg-orange-600 text-[10px] font-black uppercase tracking-wider cursor-pointer active:scale-95 transition-all flex items-center gap-1 shadow-md shadow-orange-500/20"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Add Competitor
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
               <p className={`text-xs mt-1 transition-colors duration-300 ${isDarkMode ? "text-white/50" : "text-gray-650"}`}>Direct breakdown of top Indian creators in relevant niches. Learn from their formats.</p>
             </div>
+
+            <AnimatePresence initial={false} mode="wait">
+              {!isCompetitorsCollapsed ? (
+                <motion.div
+                  key="intelligence-expanded"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.4, ease: "easeInOut" }}
+                  className="space-y-5 overflow-hidden flex flex-col w-full"
+                >
 
             {/* Premium Search Filter Bar */}
             <div className="relative">
@@ -6743,6 +6787,66 @@ export default function ContentCopilotPage() {
                 )}
               </div>
             </div>
+            
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="intelligence-collapsed"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className={`flex flex-wrap items-center justify-between gap-4 p-4.5 rounded-xl border border-dashed transition-colors duration-300 w-full ${
+                    isDarkMode 
+                      ? "bg-white/[0.01]/30 border-white/10 text-white" 
+                      : "bg-gray-50 border-gray-200 text-gray-800"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex -space-x-2 overflow-hidden select-none">
+                      {competitors.slice(0, 4).map((comp) => (
+                        <div
+                          key={comp.id}
+                          className={`w-7 h-7 rounded-full border flex items-center justify-center font-mono text-[9px] font-bold uppercase transition-all duration-300 ${
+                            isDarkMode 
+                              ? "bg-[#111] border-white/15 text-[#00F0FF]" 
+                              : "bg-white border-black/10 text-[#00A8B5]"
+                          }`}
+                          style={{ borderColor: activeConfig.color + "50" }}
+                          title={comp.name}
+                        >
+                          {comp.name.substring(0, 2)}
+                        </div>
+                      ))}
+                      {competitors.length > 4 && (
+                        <div className={`w-7 h-7 rounded-full border flex items-center justify-center font-mono text-[9px] font-extrabold ${
+                          isDarkMode 
+                            ? "bg-white/5 border-white/10 text-white/50" 
+                            : "bg-gray-100/60 border-gray-200 text-gray-550"
+                        }`}>
+                          +{competitors.length - 4}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <span className={`text-xs block font-semibold transition-colors duration-300 ${isDarkMode ? "text-white/85" : "text-gray-800"}`}>
+                        Tracker Minimized ({competitors.length} Active Rivals)
+                      </span>
+                      <span className={`text-[10px] block transition-colors duration-350 ${isDarkMode ? "text-white/45" : "text-gray-500"}`}>
+                        Looming design strategies and scroll hooks remain synced to brief writer.
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsCompetitorsCollapsed(false)}
+                    className="text-[10px] font-mono font-bold uppercase tracking-widest hover:underline transition-all cursor-pointer flex items-center gap-1"
+                    style={{ color: activeConfig.color }}
+                  >
+                    Manage Creators ➜
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </section>
         )}
@@ -7829,6 +7933,7 @@ export default function ContentCopilotPage() {
         )}
 
         {/* Custom Nav Subview Injection */}
+        {activeView === "ai-studio" && <AIStudioView />}
         {activeView === "hook-bank" && <HookBank />}
         {activeView === "sources" && <SourcesView />}
         {activeView === "pictures" && <PicturesView />}
