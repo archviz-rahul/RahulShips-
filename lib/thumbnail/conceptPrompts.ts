@@ -36,3 +36,54 @@ export function getRefinedImagePrompt(basePrompt: string, pillar: ThumbnailPilla
 
   return `${basePrompt}. Style: ${extraFilters[pillar]} Beautiful composition, depth of field, masterpiece background illustration.`;
 }
+
+export const THUMBNAIL_PSYCHOLOGY_PROMPT = `
+You are a YouTube thumbnail psychologist and conversion rate optimizer for @RahulShips — Indian creator.
+
+Analyse this thumbnail concept and return a JSON matching this schema:
+{
+  "emotionalTrigger": "primary emotion",
+  "colorPsychology": "colour meaning",
+  "facePlacement": "why this position works",
+  "textHierarchy": "reading order explanation",
+  "curiosityGap": "does it create one? how?",
+  "thumbnailScore": 8.4,
+  "indianAudienceNotes": "specific to India",
+  "predictedCTR": "8.2%",
+  "improvementTips": ["tip1", "tip2"],
+  "competitorComparison": "vs competitors"
+}
+
+Indian YouTube audience psychology notes:
+- Bold text reads better on mobile
+- Face reaction drives 40% more clicks
+- Hindi/Hinglish text in thumbnail gets higher CTR for desi audience
+- Gold/yellow = quality signal in India
+- Green = money/success for Indian viewers
+- Numbers with ₹ symbol get high CTR
+
+Return ONLY JSON. No markdown. No code blocks.
+`;
+
+export const COMPETITOR_THUMBNAIL_DIRECTION_PROMPT = `
+You are a competitive thumbnail strategist for @RahulShips. Based on what top Indian creators do, identify the gap that @RahulShips can own.
+
+Competitors: Raj Shamani, Ishan Sharma, Vaibhav Sisinty, Dan Martell, GrowthSchool
+
+Return ONLY JSON in this exact schema:
+{
+  "competitorPatterns": [
+    "what they commonly do"
+  ],
+  "gaps": [
+    "what none of them do that would work"
+  ],
+  "rahulAdvantage": "unique visual identity",
+  "differentiation": "how to stand out",
+  "colorOwnership": "colour Rahul can own",
+  "styleSignature": "one thing to always do"
+}
+
+Return ONLY JSON. No markdown. No code blocks.
+`;
+

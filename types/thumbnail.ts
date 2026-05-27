@@ -35,6 +35,10 @@ export interface FacePlaceholderConfig {
   url?: string;
   glowColor: string;
   glowWidth: number;
+  customPhotoId?: string;
+  customBase64?: string;
+  orientation?: string;
+  expression?: string;
 }
 
 export interface ThumbnailState {

@@ -64,11 +64,44 @@ function drawVignette(ctx: CanvasRenderingContext2D, width: number, height: numb
 export function drawFacePlaceholder(
   ctx: CanvasRenderingContext2D,
   config: FacePlaceholderConfig,
-  primaryColor: string
+  primaryColor: string,
+  faceImgElement: HTMLImageElement | null = null
 ) {
-  if (config.type === "none") return;
+  if (config.type === "none" && !faceImgElement) return;
 
   const { x, y, scale, glowColor, glowWidth } = config;
+
+  if (faceImgElement) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    // Apply Flip horizontally if orientation is left
+    if (config.orientation === "left") {
+      ctx.scale(-1, 1);
+    }
+
+    // Apply glow effect if configured
+    if (glowWidth > 0) {
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = glowWidth * 2;
+    }
+
+    const imgWidth = faceImgElement.width;
+    const imgHeight = faceImgElement.height;
+    const targetHeight = 400;
+    const targetWidth = (imgWidth / imgHeight) * targetHeight;
+
+    ctx.drawImage(
+      faceImgElement,
+      -targetWidth / 2,
+      -targetHeight,
+      targetWidth,
+      targetHeight
+    );
+    ctx.restore();
+    return;
+  }
 
   ctx.save();
   ctx.translate(x, y);
@@ -179,10 +212,12 @@ export function drawFacePlaceholder(
 export async function renderThumbnail(
   canvas: HTMLCanvasElement,
   state: ThumbnailState,
-  bgImgElement: HTMLImageElement | null
+  bgImgElement: HTMLImageElement | null,
+  faceImgElement: HTMLImageElement | null = null
 ) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
+
 
   const width = state.resolution === "1280x720" ? 1280 : 720;
   const height = state.resolution === "1280x720" ? 720 : 1280;
@@ -255,7 +290,12 @@ export async function renderThumbnail(
   }
 
   // STEP 5: Draw Face Placeholder
-  drawFacePlaceholder(ctx, state.face, state.pillar === "Archviz + AI" ? "#FFB800" : state.pillar === "Trading + Systems" ? "#39FF14" : state.pillar === "Vibe Coding" ? "#00E5FF" : "#FF6B35");
+  drawFacePlaceholder(
+    ctx,
+    state.face,
+    state.pillar === "Archviz + AI" ? "#FFB800" : state.pillar === "Trading + Systems" ? "#39FF14" : state.pillar === "Vibe Coding" ? "#00E5FF" : "#FF6B35",
+    faceImgElement
+  );
 
   // STEP 6: Draw Text Layers (Title + Subtitle)
   // Subtitle Drawing

@@ -20,12 +20,20 @@ import {
   Upload,
   Bot,
   Flame,
-  MousePointerClick
+  MousePointerClick,
+  Trash2,
+  Check,
+  User,
+  Crown,
+  Search,
+  Filter
 } from "lucide-react";
 import { ThumbnailPillar, ThumbnailResolution, FaceType } from "@/types/thumbnail";
 import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
 import { renderThumbnail, loadImage } from "@/lib/thumbnail/canvasRenderer";
 import { PILLAR_PRESETS } from "@/lib/thumbnail/stylePresets";
+import { PILLAR_TEMPLATES } from "@/lib/thumbnail/pillarTemplates";
+import { getPhotos, savePhoto, deletePhoto, incrementUsageCount, RahulPhoto } from "@/lib/thumbnail/indexedDB";
 
 interface ThumbnailViewProps {
   activePillar?: string;
@@ -94,6 +102,8 @@ export function ThumbnailView({
     setManualBackground,
     generateConcept,
     generateBackground,
+    updateCustomFace,
+    applyLockTemplate,
   } = useThumbnailGenerator(verifiedPillar);
 
   // Layout selection tabs
@@ -106,8 +116,59 @@ export function ThumbnailView({
   const [isBgGenerating, setIsBgGenerating] = useState<boolean>(false);
   const [bgImageElement, setBgImageElement] = useState<HTMLImageElement | null>(null);
 
+  // Stored Photos and Custom Face state variables
+  const [storedPhotos, setStoredPhotos] = useState<RahulPhoto[]>([]);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
+  const [autoRemoveBg, setAutoRemoveBg] = useState<boolean>(true);
+  const [photoExpression, setPhotoExpression] = useState<string>("excited");
+  const [photoOrientation, setPhotoOrientation] = useState<string>("right");
+  const [faceImageElement, setFaceImageElement] = useState<HTMLImageElement | null>(null);
+
   // Canvas ref
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Load photos from IndexedDB
+  const loadStoredPhotos = async () => {
+    try {
+      const list = await getPhotos();
+      setStoredPhotos(list);
+    } catch (e) {
+      console.error("Photos library fetch error:", e);
+    }
+  };
+
+  useEffect(() => {
+    loadStoredPhotos();
+  }, []);
+
+  // Pre-load and cache face image element
+  useEffect(() => {
+    let active = true;
+
+    if (!state.face.customBase64) {
+      setTimeout(() => {
+        if (active) setFaceImageElement(null);
+      }, 0);
+      return;
+    }
+
+    loadImage(state.face.customBase64)
+      .then((img) => {
+        if (active) {
+          setFaceImageElement(img);
+        }
+      })
+      .catch((err) => {
+        if (active) {
+          console.error("Custom face image load exception:", err);
+          setFaceImageElement(null);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [state.face.customBase64]);
 
   // Pillar configurations coordinates with brand styling
   const presetConfig = PILLAR_PRESETS[state.pillar];
@@ -154,9 +215,93 @@ export function ThumbnailView({
   // Render trigger whenever state changes
   useEffect(() => {
     if (canvasRef.current) {
-      renderThumbnail(canvasRef.current, state, bgImageElement);
+      renderThumbnail(canvasRef.current, state, bgImageElement, faceImageElement);
     }
-  }, [state, bgImageElement]);
+  }, [state, bgImageElement, faceImageElement]);
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPhoto(true);
+    showToast("Processing personal image. Reading bytes...", "info");
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      let base64 = reader.result as string;
+
+      if (autoRemoveBg) {
+        showToast("Engaging background-removal algorithm...", "info");
+        try {
+          const res = await fetch("/api/thumbnail", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "remove-bg", imageBase64: base64 })
+          });
+          const data = await res.json();
+          if (data.success && data.transparentImageBase64) {
+            base64 = data.transparentImageBase64;
+            showToast("Success! Background extracted successfully.", "success");
+          } else {
+            showToast("Background removal skipped, utilizing file outline.", "info");
+          }
+        } catch (err) {
+          showToast("Failed removing background, loading original.", "info");
+        }
+      }
+
+      try {
+        const newPhoto: RahulPhoto = {
+          id: Date.now().toString(),
+          base64: base64,
+          thumbnailBase64: base64,
+          expression: photoExpression,
+          orientation: photoOrientation,
+          hasBgRemoved: autoRemoveBg,
+          uploadedAt: new Date().toISOString(),
+          usageCount: 0
+        };
+
+        await savePhoto(newPhoto);
+        await loadStoredPhotos();
+        showToast("Photo successfully saved in your personal library!", "success");
+      } catch (err) {
+        showToast("Error saving in database.", "error");
+      } finally {
+        setIsUploadingPhoto(false);
+      }
+    };
+    reader.onerror = () => {
+      showToast("Failed reading file.", "error");
+      setIsUploadingPhoto(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSelectPhoto = async (photo: RahulPhoto) => {
+    try {
+      updateCustomFace(photo.id, photo.base64, photo.orientation, photo.expression);
+      await incrementUsageCount(photo.id);
+      await loadStoredPhotos();
+      showToast(`Selected photo library avatar! Orientation is ${photo.orientation || 'right'}.`, "success");
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeletePhoto = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await deletePhoto(id);
+      await loadStoredPhotos();
+      showToast("Removed photo from personal library.", "info");
+      if (state.face.customPhotoId === id) {
+        updateCustomFace("", "", "", "");
+      }
+    } catch (err) {
+      showToast("Deleter operation failed.", "error");
+    }
+  };
 
   const handleCreateConcept = async () => {
     if (!topicInput.trim()) {
@@ -488,7 +633,7 @@ export function ThumbnailView({
                 </motion.div>
               )}
 
-              {/* TAB 3: AVATAR EXPRESIVE SILHOUETTE SELECTOR */}
+              {/* TAB 3: SIGNATURE TEMPLATES & PERSONAL PHOTO PORTRAITS */}
               {activeTab === "face" && (
                 <motion.div
                   key="face-panel"
@@ -498,108 +643,246 @@ export function ThumbnailView({
                   transition={{ duration: 0.15 }}
                   className="space-y-4"
                 >
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold font-mono uppercase tracking-widest text-white/50 block">
-                      Expressive Face Outline
-                    </label>
-                    {/* AVATAR GRID ACTIONS */}
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {[
-                        { id: "pointing", label: "Pointing 🔥" },
-                        { id: "surprised", label: "Agape!" },
-                        { id: "happy", label: "Smiling" },
-                        { id: "neutral", label: "Neutral" },
-                        { id: "none", label: "None background" }
-                      ].map((type) => (
-                        <button
-                          key={type.id}
-                          onClick={() => updateFaceType(type.id as FaceType)}
-                          className={`py-2 px-1 text-[10px] font-bold rounded-lg border transition-all truncate cursor-pointer ${
-                            state.face.type === type.id
-                              ? "bg-stone-900 border-white/20 text-white"
-                              : "border-white/[0.04] bg-stone-950 hover:bg-stone-900 text-white/40"
-                          }`}
-                          style={state.face.type === type.id ? { borderColor: activeAccentColor, color: activeAccentColor } : undefined}
-                        >
-                          {type.label}
-                        </button>
-                      ))}
+                  {/* --- SECTION 1: SIGNATURE TEMPLATES --- */}
+                  <div className="space-y-2 pb-3 border-b border-white/[0.04]">
+                    <div className="flex items-center gap-1.5 justify-between">
+                      <label className="text-[10px] font-bold font-mono uppercase tracking-widest text-white/50 block">
+                        Locked Signature System
+                      </label>
+                      <span className="text-[9px] bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded border border-amber-500/20 flex items-center gap-1 font-mono">
+                        <Crown className="w-2.5 h-2.5" /> THEMED RECALL
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.keys(PILLAR_TEMPLATES).map((pillarName) => {
+                        const tmpl = PILLAR_TEMPLATES[pillarName as ThumbnailPillar];
+                        const isCurrentPillar = state.pillar === pillarName;
+                        return (
+                          <button
+                            key={pillarName}
+                            onClick={() => {
+                              applyLockTemplate(tmpl);
+                              showToast(`Applied ${tmpl.name} Locked Template for ${pillarName}!`, "success");
+                            }}
+                            className={`p-2.5 text-left rounded-lg border transition-all hover:bg-white/[0.02] cursor-pointer group relative overflow-hidden`}
+                            style={{
+                              backgroundColor: "rgba(5, 5, 5, 0.9)",
+                              borderColor: isCurrentPillar ? tmpl.primaryColor : "rgba(255,255,255,0.06)",
+                            }}
+                          >
+                            <div className="text-[10px] font-bold text-white group-hover:text-amber-400 transition-colors">
+                              {tmpl.name}
+                            </div>
+                            <div className="text-[8px] font-mono text-white/40 mt-1 uppercase">
+                              {pillarName.split(" ")[0]} Style
+                            </div>
+                            <div className="text-[8px] font-mono mt-1.5 flex items-center gap-1" style={{ color: tmpl.primaryColor }}>
+                              <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tmpl.primaryColor }}></span>
+                              {tmpl.faceExpression.toUpperCase()} • {tmpl.titleFontSize}px
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  {/* COORDS SLIDERS */}
-                  {state.face.type !== "none" && (
-                    <div className="space-y-3.5 pt-3 border-t border-white/[0.04]">
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[9px] font-mono text-white/50">
-                          <span>Horizontal Position (X)</span>
-                          <span>{state.face.x}px</span>
+                  {/* --- SECTION 2: RAHUL'S PERSONAL PHOTO LIBRARY (INDEXEDDB) --- */}
+                  <div className="space-y-2.5">
+                    <label className="text-[10px] font-bold font-mono uppercase tracking-widest text-white/50 block">
+                      Rahul's Photo Library (IndexedDB)
+                    </label>
+
+                    {/* PHOTO UPLOAD AND CONFIGURATION BOX */}
+                    <div className="p-3 bg-stone-950 border border-white/[0.04] rounded-lg space-y-2.5">
+                      <div className="flex items-center justify-between gap-2.5">
+                        <div className="flex items-center gap-1.5 text-[10px] text-white/60">
+                          <input
+                            type="checkbox"
+                            id="autoRemoveCheckbox"
+                            checked={autoRemoveBg}
+                            onChange={(e) => setAutoRemoveBg(e.target.checked)}
+                            className="rounded bg-black border-white/20 text-amber-500 accent-amber-500 focus:ring-0"
+                          />
+                          <label htmlFor="autoRemoveCheckbox" className="font-mono cursor-pointer select-none">
+                            Auto-remove bg via API
+                          </label>
                         </div>
+
+                        {/* TAG INPUTS */}
+                        <div className="flex items-center gap-1">
+                          <select
+                            value={photoExpression}
+                            onChange={(e) => setPhotoExpression(e.target.value)}
+                            className="bg-stone-900 border border-white/10 text-[9px] rounded font-mono p-1 text-white outline-none cursor-pointer"
+                          >
+                            <option value="excited">⚡ Excited</option>
+                            <option value="shocked">🤯 Shocked</option>
+                            <option value="serious">🧠 Serious</option>
+                            <option value="smiling">😊 Smiling</option>
+                            <option value="pointing">👉 Pointing</option>
+                            <option value="confident">🔥 Confident</option>
+                          </select>
+                          <select
+                            value={photoOrientation}
+                            onChange={(e) => setPhotoOrientation(e.target.value)}
+                            className="bg-stone-900 border border-white/10 text-[9px] rounded font-mono p-1 text-white outline-none cursor-pointer"
+                          >
+                            <option value="right">Face Right</option>
+                            <option value="left">Face Left</option>
+                            <option value="forward">Forward</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* DRAG / DROP UPLOAD ELEMENT */}
+                      <label className="border border-dashed border-white/10 hover:border-amber-500/40 rounded-lg p-3 text-center block cursor-pointer bg-stone-900/40 hover:bg-stone-900/80 transition-all">
+                        {isUploadingPhoto ? (
+                          <div className="flex flex-col items-center justify-center py-1">
+                            <RefreshCw className="w-5 h-5 text-amber-500 animate-spin" />
+                            <span className="text-[10px] text-white/70 font-mono mt-1">Processing Transparent Silhouette...</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-1">
+                            <Upload className="w-5 h-5 text-white/40 group-hover:text-amber-500 transition-colors" />
+                            <span className="text-[10px] text-white/80 font-bold mt-1">Upload Rahul Portrait Portrait</span>
+                            <span className="text-[8px] text-white/40 font-mono mt-0.5">JPG/PNG with auto background removal</span>
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          disabled={isUploadingPhoto}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+
+                    {/* PHOTO LIBRARY GRID */}
+                    {storedPhotos.length > 0 ? (
+                      <div className="space-y-2">
+                        <span className="text-[8px] font-mono text-white/40 uppercase block">Stored Portraits ({storedPhotos.length})</span>
+                        <div className="grid grid-cols-4 gap-1.5 max-h-40 overflow-y-auto pr-1">
+                          {storedPhotos.map((photo) => {
+                            const isSelected = state.face.customPhotoId === photo.id;
+                            return (
+                              <div
+                                key={photo.id}
+                                onClick={() => handleSelectPhoto(photo)}
+                                className={`group p-1 bg-stone-950 border rounded-lg cursor-pointer relative overflow-hidden aspect-square flex flex-col items-center justify-center transition-all ${
+                                  isSelected ? "border-amber-500 bg-amber-500/5 shadow-md" : "border-white/5 hover:border-white/20"
+                                }`}
+                              >
+                                {/* IMAGE BACKGROUND WITH TRANSPARENT GRAPHIC VIEW */}
+                                <img
+                                  src={photo.thumbnailBase64}
+                                  alt="Rahul portrait"
+                                  className="w-10 h-10 object-contain drop-shadow"
+                                />
+
+                                {/* TRASH TRIGGER */}
+                                <button
+                                  onClick={(e) => handleDeletePhoto(photo.id, e)}
+                                  className="absolute top-1 right-1 p-1 bg-stone-900/95 hover:bg-red-500/90 hover:text-white rounded border border-white/15 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                >
+                                  <Trash2 className="w-2.5 h-2.5 text-red-500 group-hover:text-white" />
+                                </button>
+
+                                {/* SELECT TAG */}
+                                {isSelected && (
+                                  <div className="absolute bottom-1 right-1 bg-amber-500 text-black p-0.5 rounded font-mono font-bold text-[6px]">
+                                    <Check className="w-2.5 h-2.5 text-black" />
+                                  </div>
+                                )}
+
+                                {/* TAG BADGES */}
+                                <div className="absolute bottom-0 text-center w-full bg-black/75 py-0.5 text-[7px] font-mono text-white/70 truncate uppercase">
+                                  {photo.expression}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-lg bg-stone-950 border border-white/[0.03] text-center">
+                        <User className="w-6 h-6 text-white/20 mx-auto" />
+                        <div className="text-[9px] font-mono text-white/40 mt-1 uppercase">Personal asset catalog currently empty.</div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* COORDS ADJUSTERS */}
+                  <div className="space-y-3.5 pt-3 border-t border-white/[0.04]">
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[9px] font-mono text-white/50">
+                        <span>Horizontal Position (X)</span>
+                        <span>{state.face.x}px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max={state.resolution === "1280x720" ? 1280 : 720}
+                        value={state.face.x}
+                        onChange={(e) => updateFacePosition(Number(e.target.value), state.face.y)}
+                        className="w-full h-1 bg-stone-950 rounded-lg appearance-none cursor-pointer accent-[#FFB800]"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[9px] font-mono text-white/50">
+                        <span>Vertical Position (Y)</span>
+                        <span>{state.face.y}px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max={state.resolution === "1280x720" ? 720 : 1280}
+                        value={state.face.y}
+                        onChange={(e) => updateFacePosition(state.face.x, Number(e.target.value))}
+                        className="w-full h-1 bg-stone-950 rounded-lg appearance-none cursor-pointer accent-[#FFB800]"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[9px] font-mono text-white/50">
+                        <span>Scale multiplier</span>
+                        <span>{state.face.scale.toFixed(1)}x</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0.4"
+                        max="2.5"
+                        step="0.1"
+                        value={state.face.scale}
+                        onChange={(e) => updateFaceScale(Number(e.target.value))}
+                        className="w-full h-1 bg-stone-950 rounded-lg appearance-none cursor-pointer accent-[#FFB800]"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div className="space-y-1">
+                        <span className="text-[9px] text-white/50 block font-mono">Neon Glow</span>
+                        <input
+                          type="color"
+                          value={state.face.glowColor}
+                          onChange={(e) => updateFaceGlow(e.target.value, state.face.glowWidth)}
+                          className="w-full h-7 border-none bg-stone-950 cursor-pointer rounded animate-pulse"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[9px] text-white/50 block font-mono">Glow width</span>
                         <input
                           type="range"
                           min="0"
-                          max={state.resolution === "1280x720" ? 1280 : 720}
-                          value={state.face.x}
-                          onChange={(e) => updateFacePosition(Number(e.target.value), state.face.y)}
-                          className="w-full h-1 bg-stone-950 rounded-lg appearance-none cursor-pointer accent-[#FFB800]"
+                          max="15"
+                          value={state.face.glowWidth}
+                          onChange={(e) => updateFaceGlow(state.face.glowColor, Number(e.target.value))}
+                          className="w-full h-1 mt-3 bg-stone-950 rounded-lg appearance-none cursor-pointer accent-[#FFB800]"
                         />
-                      </div>
-
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[9px] font-mono text-white/50">
-                          <span>Vertical Position (Y)</span>
-                          <span>{state.face.y}px</span>
-                        </div>
-                        <input
-                          type="range"
-                          min="0"
-                          max={state.resolution === "1280x720" ? 720 : 1280}
-                          value={state.face.y}
-                          onChange={(e) => updateFacePosition(state.face.x, Number(e.target.value))}
-                          className="w-full h-1 bg-stone-950 rounded-lg appearance-none cursor-pointer accent-[#FFB800]"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[9px] font-mono text-white/50">
-                          <span>Scale multiplier</span>
-                          <span>{state.face.scale.toFixed(1)}x</span>
-                        </div>
-                        <input
-                          type="range"
-                          min="0.4"
-                          max="2.5"
-                          step="0.1"
-                          value={state.face.scale}
-                          onChange={(e) => updateFaceScale(Number(e.target.value))}
-                          className="w-full h-1 bg-stone-950 rounded-lg appearance-none cursor-pointer accent-[#FFB800]"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        <div className="space-y-1">
-                          <span className="text-[9px] text-white/50 block font-mono">Neon Glow</span>
-                          <input
-                            type="color"
-                            value={state.face.glowColor}
-                            onChange={(e) => updateFaceGlow(e.target.value, state.face.glowWidth)}
-                            className="w-full h-7 border-none bg-stone-950 cursor-pointer rounded"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-[9px] text-white/50 block font-mono">Glow width</span>
-                          <input
-                            type="range"
-                            min="0"
-                            max="15"
-                            value={state.face.glowWidth}
-                            onChange={(e) => updateFaceGlow(state.face.glowColor, Number(e.target.value))}
-                            className="w-full h-1 mt-3 bg-stone-950 rounded-lg appearance-none cursor-pointer accent-[#FFB800]"
-                          />
-                        </div>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </motion.div>
               )}
 

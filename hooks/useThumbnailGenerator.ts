@@ -236,6 +236,57 @@ export function useThumbnailGenerator(initialPillar: ThumbnailPillar = "Archviz 
     }
   };
 
+  const updateCustomFace = (customPhotoId?: string, customBase64?: string, orientation?: string, expression?: string) => {
+    setState((prev) => ({
+      ...prev,
+      face: {
+        ...prev.face,
+        customPhotoId,
+        customBase64,
+        orientation: orientation || prev.face.orientation || "forward",
+        expression: expression || prev.face.expression || "neutral"
+      }
+    }));
+  };
+
+  const applyLockTemplate = (template: any) => {
+    setState((prev) => {
+      const width = prev.resolution === "1280x720" ? 1280 : 720;
+      const height = prev.resolution === "1280x720" ? 720 : 1280;
+      return {
+        ...prev,
+        vignette: template.vignetteStrength > 0.1,
+        neonGrid: template.neonGrid,
+        overlayColor: template.secondaryColor,
+        overlayOpacity: template.vignetteStrength,
+        title: {
+          ...prev.title,
+          fontSize: template.titleFontSize,
+          color: template.titleColor,
+          shadowColor: template.titleShadowColor,
+          x: Math.round(width * template.textZoneXPercent),
+          y: Math.round(height * template.textZoneYPercent)
+        },
+        subtitle: {
+          ...prev.subtitle,
+          fontSize: template.subtitleFontSize,
+          color: template.subtitleColor,
+          x: Math.round(width * template.textZoneXPercent),
+          y: Math.round(height * template.textZoneYPercent) + template.titleFontSize + 20
+        },
+        face: {
+          ...prev.face,
+          type: template.faceExpression,
+          scale: template.faceSize,
+          x: Math.round(width * template.faceXPercent),
+          y: Math.round(height * template.faceYPercent),
+          glowWidth: template.faceGlowWidth,
+          glowColor: template.faceGlowColor
+        }
+      };
+    });
+  };
+
   return {
     state,
     setPillar,
@@ -257,5 +308,7 @@ export function useThumbnailGenerator(initialPillar: ThumbnailPillar = "Archviz 
     setManualBackground,
     generateConcept,
     generateBackground,
+    updateCustomFace,
+    applyLockTemplate,
   };
 }
